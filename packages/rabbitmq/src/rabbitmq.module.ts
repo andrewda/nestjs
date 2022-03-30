@@ -51,7 +51,10 @@ export class RabbitMQModule
           useFactory: async (
             config: RabbitMQConfig
           ): Promise<AmqpConnection> => {
-            return RabbitMQModule.connections.find(connection => connection.configuration.name === config.name || 'default') as AmqpConnection;
+            return RabbitMQModule.connections.find(
+              (connection) =>
+                connection.configuration.name === config.name || 'default'
+            ) as AmqpConnection;
           },
           inject: [RABBIT_CONFIG_TOKEN],
         },
@@ -60,7 +63,8 @@ export class RabbitMQModule
       exports: [RABBIT_CONNECTIONS, AmqpConnection],
     }
   )
-  implements OnApplicationBootstrap, OnApplicationShutdown {
+  implements OnApplicationBootstrap, OnApplicationShutdown
+{
   private readonly logger = new Logger(RabbitMQModule.name);
 
   private static connections: AmqpConnection[] = [];
@@ -71,7 +75,7 @@ export class RabbitMQModule
     private readonly rpcParamsFactory: RabbitRpcParamsFactory,
 
     @InjectRabbitMQConnections()
-    private readonly amqpConnections: AmqpConnection[],
+    private readonly amqpConnections: AmqpConnection[]
   ) {
     super();
   }
@@ -166,7 +170,10 @@ export class RabbitMQModule
         this.logger.log(`Registering rabbitmq handlers from ${key}`);
         await Promise.all(
           grouped[key].map(async ({ discoveredMethod, meta: config }) => {
-            if (config.connection && config.connection !== connection.configuration.name) {
+            if (
+              config.connection &&
+              config.connection !== connection.configuration.name
+            ) {
               return;
             }
 
@@ -184,11 +191,12 @@ export class RabbitMQModule
 
             const { exchange, routingKey, queue, queueOptions } = config;
 
-            const handlerDisplayName = `${discoveredMethod.parentClass.name}.${discoveredMethod.methodName
-              } {${config.type}} -> ${
+            const handlerDisplayName = `${discoveredMethod.parentClass.name}.${
+              discoveredMethod.methodName
+            } {${config.type}} -> ${
               // eslint-disable-next-line sonarjs/no-nested-template-literals
               queueOptions?.channel ? `${queueOptions.channel}::` : ''
-              }${exchange}::${routingKey}::${queue || 'amqpgen'}`;
+            }${exchange}::${routingKey}::${queue || 'amqpgen'}`;
 
             if (
               config.type === 'rpc' &&
